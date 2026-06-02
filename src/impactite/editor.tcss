@@ -1,0 +1,152 @@
+/* Markdown Editor Styles */
+
+Screen {
+    background: $background;
+}
+
+/* Главная панель */
+#main-container {
+    layout: grid;
+    grid-size: 2 1;
+    grid-columns: 30 1fr;
+    grid-rows: 1fr;
+    height: 1fr;
+}
+
+/* Боковая панель */
+#sidebar {
+    column-span: 1;
+    border: solid $primary-darken-2;
+    padding: 0;
+    background: $surface;
+}
+
+#sidebar Label {
+    padding: 1;
+    background: $primary-darken-3;
+    color: $text;
+}
+
+/* Дерево файлов */
+#file-tree {
+    height: 1fr;
+    padding: 0;
+}
+
+Tree {
+    background: $surface;
+}
+
+Tree > .tree--label {
+    padding: 0 1;
+}
+
+Tree > .tree--label:hover {
+    background: $primary-darken-2;
+}
+
+/* Облако тегов */
+#tag-cloud-container {
+    height: auto;
+    max-height: 10;
+    border-top: solid $primary-darken-2;
+    padding: 1;
+    background: $surface-darken-1;
+}
+
+#tag-cloud {
+    height: auto;
+    padding: 1;
+}
+
+/* Область контента */
+#content-area {
+    column-span: 1;
+    padding: 0;
+    background: $background;
+}
+
+/* Просмотрщик Markdown */
+#viewer-container {
+    height: 1fr;
+    padding: 1 2;
+}
+
+MarkdownViewer {
+    content-align: left top;
+    padding: 1 2;
+    background: $background;
+}
+
+/* Редактор */
+#editor-container {
+    height: 1fr;
+}
+
+TextArea {
+    background: $surface;
+    border: none;
+}
+
+/* Статус бар */
+#status-bar {
+    dock: bottom;
+    height: 1;
+    background: $primary-darken-3;
+    padding: 0 1;
+    color: $text;
+}
+
+/* Модальное окно поиска тегов */
+TagSearchModal {
+    align: center middle;
+}
+
+TagSearchModal Container {
+    width: 80;
+    height: 20;
+    background: $surface;
+    border: thick $primary;
+    padding: 1 2;
+}
+
+TagSearchModal #search-input {
+    width: 100%;
+    margin: 1 0;
+}
+
+TagSearchModal #results {
+    width: 100%;
+    height: 1fr;
+    border: solid $primary-darken-2;
+    padding: 1;
+    background: $background;
+}
+
+/* Блок кода */
+CodeBlock {
+    background: $surface;
+    border: round $primary;
+    padding: 1 2;
+    margin: 1 0;
+    content-align: left top;
+}
+
+/* Скрытый элемент */
+.hidden {
+    display: none;
+}
+
+/* Header и Footer */
+Header {
+    dock: top;
+    height: 3;
+    background: $primary;
+    color: $text;
+}
+
+Footer {
+    dock: bottom;
+    height: 3;
+    background: $primary-darken-3;
+}

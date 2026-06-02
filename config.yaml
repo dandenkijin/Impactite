@@ -1,0 +1,38 @@
+# Конфигурация Markdown Viewer/Editor
+
+# Путь к папке с markdown файлами.
+# Можно указать любой каталог:
+#   - абсолютный путь:      "/home/user/Documents/MyNotes"
+#   - с домашним каталогом: "~/Notes"
+#   - относительный путь:   "./notes" (считается ОТНОСИТЕЛЬНО этого конфиг-файла)
+notes_path: "./samples"
+
+# Язык интерфейса: en (English), ru (Русский), de (Deutsch)
+language: "en"
+
+# Горячие клавиши
+hotkeys:
+  open_file: "enter"          # Открыть выбранный файл
+  edit_mode: "e"              # Переключить режим редактирования
+  view_mode: "v"              # Переключить режим просмотра
+  save_file: "ctrl+s"         # Сохранить файл
+  search_tags: "ctrl+t"       # Поиск по тегам
+  close_search: "escape"      # Закрыть поиск/диалог
+  quit: "ctrl+q"              # Выход
+  refresh: "ctrl+r"           # Обновить список файлов
+  toggle_sidebar: "ctrl+b"    # Показать/скрыть боковую панель
+
+# Настройки отображения
+display:
+  show_line_numbers: true     # Показывать номера строк в редакторе
+  word_wrap: true             # Перенос слов в редакторе
+  syntax_theme: "monokai"     # Тема синтаксиса редактора (monokai, dracula, vscode_dark, github_light)
+  code_border: "round"        # Стиль рамки для блоков кода (round, box, double)
+  app_theme: "textual-dark"   # Тема приложения: textual-dark, textual-light, solarized-light,
+                              # catppuccin-latte, rose-pine-dawn, atom-one-light, dracula, monokai...
+
+# Настройки тегов
+tags:
+  show_cloud: true            # Показывать облако тегов
+  min_tag_size: 1             # Минимальный размер шрифта для тегов
+  max_tag_size: 3             # Максимальный размер шрифта для тегов
