@@ -16,6 +16,7 @@ Obsidian, geschrieben in Python mit den Bibliotheken **Rich** und **Textual**.
 - 🌐 **Oberflächenlokalisierung** — Englisch, Russisch, Deutsch
 - 📝 **Eingabeformulare** — Formularnotizen mit Feldern, gespeichert in eine Datei oder eine Datenbank
 - 🧮 **Pseudo-SQL-Abfragen** — einbettbare Abfragen über Notizen und die Datenbank (im Dataview-Stil)
+- ⭐ **Favoriten** — Notizen als Favoriten markieren und über einen virtuellen Ordner aufrufen
 - 🗂️ **Beliebiger Notizordner** — das Verzeichnis wird in der Konfiguration festgelegt (absolut / `~` / relativ)
 - ⌨️ **Anpassbare Tastenkürzel**
 
@@ -115,7 +116,7 @@ impactite/
 │   ├── i18n.py             # Lokalisierung (en/ru/de)
 │   └── editor.tcss         # (ungenutzt — aus Kompatibilitätsgründen behalten)
 └── notes/                  # Notizordner (Standard)
-    └── .tag_index.db       # SQLite: Tag-Index, Farben, Formulardatensätze
+    └── .tag_index.db       # SQLite: Tag-Index, Farben, Formulardatensätze, Favoriten
 ```
 
 ---
@@ -486,6 +487,7 @@ ORDER BY amount DESC
 | `E` | Bearbeitungsmodus |
 | `Ctrl+S` | Datei speichern |
 | `Ctrl+T` | Tag-Suche |
+| `Ctrl+F` | Zu Favoriten hinzufügen/entfernen |
 | `Ctrl+L` | Helles/dunkles Thema umschalten |
 | `Ctrl+R` | Dateiliste aktualisieren |
 | `Ctrl+B` | Seitenleiste ein-/ausblenden |

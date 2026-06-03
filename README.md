@@ -16,6 +16,7 @@ Python with the **Rich** and **Textual** libraries.
 - 🌐 **Interface localization** — English, Russian, German
 - 📝 **Input forms** — form notes with fields, saved to a file or a database
 - 🧮 **Pseudo-SQL queries** — embeddable queries over notes and the database (Dataview-style)
+- ⭐ **Favorites** — bookmark notes and access them quickly via a virtual folder
 - 🗂️ **Any notes folder** — the directory is set in the config (absolute / `~` / relative)
 - ⌨️ **Customizable hotkeys**
 
@@ -113,7 +114,7 @@ impactite/
 │   ├── i18n.py             # Localization (en/ru/de)
 │   └── editor.tcss         # (unused — kept for compatibility)
 └── notes/                  # Notes folder (default)
-    └── .tag_index.db       # SQLite: tag index, colors, form records
+    └── .tag_index.db       # SQLite: tag index, colors, form records, favorites
 ```
 
 ---
@@ -481,6 +482,7 @@ ORDER BY amount DESC
 | `E` | Edit mode |
 | `Ctrl+S` | Save the file |
 | `Ctrl+T` | Tag search |
+| `Ctrl+F` | Toggle favorite |
 | `Ctrl+L` | Toggle light/dark theme |
 | `Ctrl+R` | Refresh the file list |
 | `Ctrl+B` | Show/hide the sidebar |
