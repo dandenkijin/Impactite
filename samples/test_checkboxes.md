@@ -7,4 +7,3 @@
 - [x] Item with **bold** text
 - [ ] Item with #tag
 
-Normal text line.

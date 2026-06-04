@@ -156,6 +156,9 @@ class ToolButton(Static):
     обрезается. Здесь — однострочный Static, поэтому иконка всегда видна.
     """
 
+    can_focus = False
+    FOCUS_ON_CLICK = False
+
     class Pressed(Message):
         def __init__(self, button_id: str) -> None:
             self.button_id = button_id
@@ -164,6 +167,50 @@ class ToolButton(Static):
     def on_click(self, event) -> None:
         event.stop()
         self.post_message(self.Pressed(self.id or ""))
+
+
+class EditorToolbar(Horizontal):
+    """Панель инструментов форматирования над редактором."""
+
+    can_focus = False
+    can_focus_children = False
+
+    class Action(Message):
+        def __init__(self, action: str, selection=None) -> None:
+            self.action = action
+            self.selection = selection
+            super().__init__()
+
+    def compose(self) -> ComposeResult:
+        buttons = [
+            ("B", "bold"),
+            ("I", "italic"),
+            ("S", "strikethrough"),
+            ("H1", "h1"),
+            ("H2", "h2"),
+            ("H3", "h3"),
+            ("[L]", "link"),
+            ("-", "bullet"),
+            ("1.", "numbered"),
+            ("[ ]", "checkbox"),
+            (">", "quote"),
+            ("```", "code"),
+            ("—", "hr"),
+        ]
+        for label, action in buttons:
+            btn = ToolButton(label, id=f"toolbar-{action}", classes="toolbar-btn")
+            btn.tooltip = action
+            yield btn
+
+    def on_tool_button_pressed(self, event: ToolButton.Pressed) -> None:
+        action = event.button_id.replace("toolbar-", "")
+        saved_selection = None
+        try:
+            editor = self.screen.query_one("#editor", TextArea)
+            saved_selection = editor.selection
+        except Exception:
+            pass
+        self.post_message(self.Action(action, saved_selection))
 
 
 class ViewerLog(RichLog):
@@ -342,18 +389,21 @@ class MarkdownViewer(Static):
                 self._checkbox_lines.append(None)
             # Списки
             elif line.startswith("- ") or line.startswith("* "):
-                log.write(f"  • {line[2:]}")
+                text = self._process_formatting_inline(line[2:])
+                log.write(f"  • {text}")
                 self._tag_lines.append(None)
                 self._checkbox_lines.append(None)
             elif re.match(r"^\d+\. ", line):
                 match = re.match(r"^(\d+)\. (.*)", line)
                 if match:
-                    log.write(f"  {match.group(1)}. {match.group(2)}")
+                    text = self._process_formatting_inline(match.group(2))
+                    log.write(f"  {match.group(1)}. {text}")
                     self._tag_lines.append(None)
                     self._checkbox_lines.append(None)
             # Цитаты
             elif line.startswith("> "):
-                log.write(f"[italic yellow]  {line[2:]}[/italic yellow]")
+                text = self._process_formatting_inline(line[2:])
+                log.write(f"[italic yellow]  {text}[/italic yellow]")
                 self._tag_lines.append(None)
                 self._checkbox_lines.append(None)
             # Теги
@@ -377,8 +427,8 @@ class MarkdownViewer(Static):
                 log.write(formatted)
                 self._tag_lines.append((tags_in_line, line))
                 self._checkbox_lines.append(None)
-            # Жирный/курсив
-            elif "**" in line or "__" in line:
+            # Inline-форматирование
+            elif any(m in line for m in ("**", "__", "~~", "*", "_[", "](")):
                 formatted = self._process_formatting_inline(line)
                 log.write(formatted)
                 self._tag_lines.append(None)
@@ -395,13 +445,19 @@ class MarkdownViewer(Static):
                 self._checkbox_lines.append(None)
 
     def _process_formatting_inline(self, line: str) -> str:
-        """Обработать жирный и курсивный текст."""
+        """Обработать inline-форматирование markdown."""
+        # Ссылки [text](url)
+        line = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'[link=\2]\1[/link]', line)
         # **жирный**
         line = re.sub(r"\*\*(.+?)\*\*", r"[bold]\1[/bold]", line)
         # __жирный__
         line = re.sub(r"__(.+?)__", r"[bold]\1[/bold]", line)
+        # ~~зачёркнутый~~
+        line = re.sub(r"~~(.+?)~~", r"[strike]\1[/strike]", line)
         # *курсив*
         line = re.sub(r"\*(.+?)\*", r"[italic]\1[/italic]", line)
+        # _курсив_
+        line = re.sub(r"_(.+?)_", r"[italic]\1[/italic]", line)
         return line
 
     def _render_query_block(self, log: "ViewerLog", query_text: str) -> int:
@@ -827,8 +883,37 @@ class MarkdownEditorApp(App):
         height: 1fr;
     }
 
-    #editor {
+    #editor-container {
         display: none;
+        height: 1fr;
+    }
+
+    #editor-toolbar {
+        height: auto;
+        padding: 0 1;
+        background: $surface-darken-1;
+        border-bottom: solid $primary-darken-2;
+    }
+
+    .toolbar-btn {
+        width: auto;
+        min-width: 3;
+        height: 1;
+        margin: 0 0 0 1;
+        padding: 0 1;
+        text-align: center;
+        background: $primary-darken-1;
+        color: $text;
+    }
+
+    .toolbar-btn:hover {
+        background: $primary;
+        color: $text;
+        text-style: bold;
+    }
+
+    #editor {
+        height: 1fr;
     }
 
     #form-view {
@@ -972,6 +1057,7 @@ class MarkdownEditorApp(App):
         self.tag_cache: Dict[str, List[Path]] = {}
         self.tag_colors: Dict[str, str] = {}
         self._original_content: str = ""
+        self._last_editor_selection = None
         self.tag_index = TagIndex(self.file_system.root_path)
         self.query_engine = QueryEngine(self.file_system, self.parser, self.tag_index)
         self._rebuild_tag_cache()
@@ -1024,7 +1110,9 @@ class MarkdownEditorApp(App):
 
             with Vertical(id="content-area"):
                 yield MarkdownViewer(id="viewer")
-                yield TextArea(id="editor", language="markdown")
+                with Vertical(id="editor-container"):
+                    yield EditorToolbar(id="editor-toolbar")
+                    yield TextArea(id="editor", language="markdown")
                 yield FormView(id="form-view")
 
         yield Static("", id="status-bar")
@@ -1038,7 +1126,7 @@ class MarkdownEditorApp(App):
         self._update_tag_cloud()
 
         editor = self.query_one("#editor", TextArea)
-        editor.display = False
+        self.query_one("#editor-container").display = False
         self.query_one("#form-view", FormView).display = False
         self._register_markdown_highlights(editor)
         self._apply_editor_syntax_theme(editor)
@@ -1121,11 +1209,12 @@ class MarkdownEditorApp(App):
         content = self.file_system.read_file(self.current_file)
         viewer = self.query_one("#viewer", MarkdownViewer)
         editor = self.query_one("#editor", TextArea)
+        editor_container = self.query_one("#editor-container")
         form   = self.query_one("#form-view", FormView)
 
         if self.is_edit_mode:
             viewer.display = False
-            editor.display = True
+            editor_container.display = True
             form.display   = False
             self._original_content = content
             editor.load_text(content)
@@ -1133,14 +1222,14 @@ class MarkdownEditorApp(App):
             form_def = parse_form_definition(content)
             if form_def is not None:
                 viewer.display = False
-                editor.display = False
+                editor_container.display = False
                 form.display   = True
                 form.load_form(form_def["catalog"], form_def["fields"],
                                form_def["destination"])
                 form.focus()
             else:
                 viewer.display = True
-                editor.display = False
+                editor_container.display = False
                 form.display   = False
                 viewer.update_content(content)
                 viewer.focus()
@@ -1246,6 +1335,107 @@ class MarkdownEditorApp(App):
             self._update_tag_cloud()
         else:
             self.notify(_("Save error"), severity="error")
+
+    def on_text_area_selection_changed(self, event: TextArea.SelectionChanged) -> None:
+        """Запомнить последний НЕПУСТОЙ selection редактора для toolbar."""
+        try:
+            editor = self.query_one("#editor", TextArea)
+            sel = editor.selection
+            if sel and not sel.is_empty:
+                self._last_editor_selection = sel
+        except Exception:
+            pass
+
+    def on_editor_toolbar_action(self, event: EditorToolbar.Action) -> None:
+        """Обработать нажатие кнопки панели инструментов редактора."""
+        try:
+            editor = self.query_one("#editor", TextArea)
+        except Exception:
+            return
+        # Восстановить selection: сначала из toolbar'а, затем из кэша App
+        saved_sel = event.selection
+        if saved_sel is None or saved_sel.is_empty:
+            saved_sel = getattr(self, "_last_editor_selection", None)
+        if saved_sel is not None and not saved_sel.is_empty:
+            editor.selection = saved_sel
+        sel = editor.selection
+        start, end = sel.start, sel.end
+        has_selection = not sel.is_empty
+        selected = editor.document.get_text_range(start, end) if has_selection else ""
+
+        if event.action in ("bold", "italic", "strikethrough"):
+            self._wrap_selection(editor, start, end, selected, event.action)
+        elif event.action in ("h1", "h2", "h3"):
+            self._prefix_line(editor, start, "#" * int(event.action[1]) + " ")
+        elif event.action == "link":
+            new_text = f"[{selected}](url)" if has_selection else "[text](url)"
+            editor.replace(new_text, start, end)
+            offset = len(f"[{selected}](") if has_selection else len("[text](")
+            editor.move_cursor((start[0], start[1] + offset))
+        elif event.action == "bullet":
+            self._prefix_line(editor, start, "- ")
+        elif event.action == "numbered":
+            self._prefix_line(editor, start, "1. ")
+        elif event.action == "checkbox":
+            self._prefix_line(editor, start, "- [ ] ")
+        elif event.action == "quote":
+            self._prefix_line(editor, start, "> ")
+        elif event.action == "code":
+            if has_selection:
+                new_text = f"```\n{selected}\n```"
+                editor.replace(new_text, start, end)
+            else:
+                editor.insert("```\n\n```", start)
+                editor.move_cursor((start[0] + 1, 0))
+        elif event.action == "hr":
+            editor.insert("\n---\n", start)
+            editor.move_cursor((start[0] + 2, 0))
+
+    def _wrap_selection(self, editor: TextArea, start, end, selected: str, action: str) -> None:
+        """Обернуть выделенный текст markdown-разметкой или вставить пустой шаблон."""
+        wraps = {
+            "bold": ("**", "**"),
+            "italic": ("*", "*"),
+            "strikethrough": ("~~", "~~"),
+        }
+        prefix, suffix = wraps[action]
+        if selected:
+            new_text = f"{prefix}{selected}{suffix}"
+            cursor_col = start[1] + len(new_text)
+        else:
+            new_text = f"{prefix}{suffix}"
+            cursor_col = start[1] + len(prefix)
+        editor.replace(new_text, start, end)
+        editor.move_cursor((start[0], cursor_col))
+
+    def _prefix_line(self, editor: TextArea, location, prefix: str) -> None:
+        """Добавить префикс к строкам редактора (заголовки, списки, цитаты).
+
+        Если выделено несколько строк — префикс применяется ко всем выделенным строкам.
+        """
+        sel = editor.selection
+        start_row = min(sel.start[0], sel.end[0])
+        end_row = max(sel.start[0], sel.end[0])
+        lines = editor.text.split("\n")
+        modified = False
+
+        for row in range(start_row, end_row + 1):
+            if not (0 <= row < len(lines)):
+                continue
+            old_line = lines[row]
+            if prefix.startswith("#"):
+                new_line = re.sub(r'^#+\s*', prefix, old_line)
+            else:
+                if old_line.startswith(prefix):
+                    continue
+                new_line = prefix + old_line
+            lines[row] = new_line
+            modified = True
+
+        if modified:
+            editor.load_text("\n".join(lines))
+            last_line = lines[end_row] if 0 <= end_row < len(lines) else ""
+            editor.move_cursor((end_row, len(last_line)))
 
     def on_tag_cloud_tag_clicked(self, event: TagCloud.TagClicked) -> None:
         """Открыть поиск с предзаполненным тегом по клику в облаке тегов."""

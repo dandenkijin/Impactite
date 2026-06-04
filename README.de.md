@@ -10,7 +10,7 @@ Obsidian, geschrieben in Python mit den Bibliotheken **Rich** und **Textual**.
 - 📁 **Dateibaum** — Navigation durch Dateien und Ordner im linken Bereich
 - 👁️ **Ansichtsmodus** — gerendertes Markdown mit Formatierung und Scrollen
 - ✅ **Interaktive Checkboxen** — klicken Sie auf Aufgabenlisten-Checkboxen (`- [ ]` / `- [x]`) im Ansichtsmodus, um sie umzuschalten und sofort zu speichern
-- ✏️ **Bearbeitungsmodus** — Markdown-Syntaxhervorhebung und Code-Hervorhebung in Codeblöcken
+- ✏️ **Bearbeitungsmodus** — Markdown-Syntaxhervorhebung und Code-Hervorhebung in Codeblöcken, mit einer Formatierungs-Symbolleiste
 - 🏷️ **Tag-Wolke** — alle Tags mit individuellen Farben, anklickbar
 - 🔍 **Tag-Suche** — modales Fenster mit anklickbaren Ergebnissen
 - 🎨 **Helles/dunkles Thema** — Umschalten im laufenden Betrieb, die Auswahl wird gemerkt
@@ -499,6 +499,28 @@ Im Ansichtsmodus ist Scrollen verfügbar: Pfeile `↑`/`↓`, `PgUp`/`PgDown`,
 `Home`/`End`. In modalen Fenstern wird der Schaltflächenfokus mit den Pfeilen
 `←`/`→` und `Tab` bewegt und mit `Enter` bestätigt. Der Notiztext kann mit der
 Maus zum Kopieren markiert werden (sowohl im Ansichts- als auch im Bearbeitungsmodus).
+
+---
+
+## Symbolleiste im Bearbeitungsmodus
+
+Im Bearbeitungsmodus erscheint über dem Editor eine Symbolleiste mit Knöpfen für schnelle Formatierung:
+
+| Knopf | Aktion |
+|-------|--------|
+| **B** | Fett (`**Text**`) |
+| *I* | Kursiv (`*Text*`) |
+| S | Durchgestrichen (`~~Text~~`) |
+| H1 / H2 / H3 | Überschriftenebenen |
+| [L] | Link (`[Text](url)`) |
+| - | Aufzählungsliste (`- Punkt`) |
+| 1. | Nummerierte Liste (`1. Punkt`) |
+| [ ] | Aufgabenliste (`- [ ] Punkt`) |
+| > | Zitat (`> Zitat`) |
+| ``` | Codeblock (` ``` ... ``` `) |
+| — | Horizontale Linie (`---`) |
+
+Wenn Text markiert ist, wird die Markierung umschlossen. Andernfalls wird eine Vorlage eingefügt und der Cursor hineingesetzt.
 
 ---
 

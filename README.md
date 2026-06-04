@@ -10,7 +10,7 @@ Python with the **Rich** and **Textual** libraries.
 - 📁 **File tree** — navigate files and folders in the left panel
 - 👁️ **View mode** — rendered Markdown with formatting and scrolling
 - ✅ **Interactive checkboxes** — click task list checkboxes (`- [ ]` / `- [x]`) in view mode to toggle and save them instantly
-- ✏️ **Edit mode** — Markdown syntax highlighting and code highlighting in fenced blocks
+- ✏️ **Edit mode** — Markdown syntax highlighting and code highlighting in fenced blocks, with a formatting toolbar
 - 🏷️ **Tag cloud** — all tags with individual colors, clickable
 - 🔍 **Tag search** — modal window with clickable results
 - 🎨 **Light/dark theme** — toggle on the fly, your choice is remembered
@@ -494,6 +494,28 @@ In view mode scrolling is available: arrows `↑`/`↓`, `PgUp`/`PgDown`, `Home`
 In modal windows the button focus is moved with arrows `←`/`→` and `Tab`, and
 confirmed with `Enter`. The note text can be selected with the mouse for copying
 (in both view and edit modes).
+
+---
+
+## Edit mode toolbar
+
+In edit mode, a toolbar appears above the editor with quick formatting buttons:
+
+| Button | Action |
+|--------|--------|
+| **B** | Bold (`**text**`) |
+| *I* | Italic (`*text*`) |
+| S | Strikethrough (`~~text~~`) |
+| H1 / H2 / H3 | Heading levels |
+| [L] | Link (`[text](url)`) |
+| - | Bullet list (`- item`) |
+| 1. | Numbered list (`1. item`) |
+| [ ] | Task list (`- [ ] item`) |
+| > | Blockquote (`> quote`) |
+| ``` | Code block (` ``` ... ``` `) |
+| — | Horizontal rule (`---`) |
+
+If text is selected, the button wraps the selection. Otherwise, it inserts a template and places the cursor inside.
 
 ---
 
