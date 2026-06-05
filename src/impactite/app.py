@@ -975,6 +975,38 @@ class TextPromptModal(ModalScreen[Optional[str]]):
         self.dismiss(None)
 
 
+class VerticalSplitter(Static):
+    """Вертикальный разделитель, ширину которого можно менять перетаскиванием."""
+
+    def __init__(self, **kwargs):
+        super().__init__("", **kwargs)
+        self._dragging = False
+        self._drag_start_x = 0
+        self._drag_start_width = 0
+
+    def on_mouse_down(self, event) -> None:
+        self._dragging = True
+        self.capture_mouse()
+        self._drag_start_x = event.screen_x
+        sidebar = self.app.query_one("#sidebar")
+        self._drag_start_width = sidebar.size.width
+
+    def on_mouse_up(self, event) -> None:
+        self._dragging = False
+        self.release_mouse()
+        main_container = self.app.query_one("#main-container")
+        sidebar_width = int(main_container.styles.grid_columns[0].value)
+        self.app.config.save_display_value("sidebar_width", sidebar_width)
+
+    def on_mouse_move(self, event) -> None:
+        if not self._dragging:
+            return
+        delta = event.screen_x - self._drag_start_x
+        new_width = max(10, self._drag_start_width + delta)
+        main_container = self.app.query_one("#main-container")
+        main_container.styles.grid_columns = (new_width, 1, "1fr")
+
+
 # ============================================================================
 # Главное приложение
 # ============================================================================
@@ -1005,8 +1037,8 @@ class MarkdownEditorApp(App):
 
     #main-container {
         layout: grid;
-        grid-size: 2 1;
-        grid-columns: 30 1fr;
+        grid-size: 3 1;
+        grid-columns: 30 1 1fr;
         height: 1fr;
     }
 
@@ -1014,6 +1046,15 @@ class MarkdownEditorApp(App):
         border: solid $primary-darken-2;
         padding: 0;
         background: $surface;
+    }
+
+    VerticalSplitter {
+        width: 1;
+        background: transparent;
+    }
+
+    VerticalSplitter:hover {
+        background: $primary-lighten-1;
     }
 
     #sidebar-header {
@@ -1328,6 +1369,8 @@ class MarkdownEditorApp(App):
                     yield Label(f"[bold]{_('Tags')}[/bold]")
                     yield TagCloud(id="tag-cloud")
 
+            yield VerticalSplitter(id="splitter")
+
             with Vertical(id="content-area"):
                 yield MarkdownViewer(id="viewer")
                 with Vertical(id="editor-container"):
@@ -1345,6 +1388,10 @@ class MarkdownEditorApp(App):
         self.refresh_bindings()
         self._refresh_file_tree()
         self._update_tag_cloud()
+
+        sidebar_width = self.config.display.get("sidebar_width", 30)
+        main_container = self.query_one("#main-container")
+        main_container.styles.grid_columns = (sidebar_width, 1, "1fr")
 
         editor = self.query_one("#editor", TextArea)
         self.query_one("#editor-container").display = False

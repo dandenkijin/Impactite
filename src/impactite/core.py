@@ -66,6 +66,50 @@ class Config:
         with open(self.config_path, "w", encoding="utf-8") as f:
             f.write(content)
 
+    def save_display_value(self, key: str, value) -> None:
+        """Обновить значение в display-секции конфига, сохранив остальное без изменений."""
+        self.display[key] = value
+        if not os.path.exists(self.config_path):
+            return
+        with open(self.config_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        display_idx = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith("display:"):
+                display_idx = i
+                break
+        if display_idx is None:
+            return
+
+        display_indent = len(lines[display_idx]) - len(lines[display_idx].lstrip())
+        item_indent = display_indent + 2
+
+        key_line = None
+        last_item_idx = display_idx
+        for i in range(display_idx + 1, len(lines)):
+            line = lines[i]
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            indent = len(line) - len(line.lstrip())
+            if indent <= display_indent:
+                break
+            last_item_idx = i
+            if stripped.startswith(f"{key}:"):
+                key_line = i
+                break
+
+        if key_line is not None:
+            lines[key_line] = re.sub(
+                rf'^(\s*{key}:\s*).+$', f'\\g<1>{value}', lines[key_line]
+            )
+        else:
+            lines.insert(last_item_idx + 1, " " * item_indent + f'{key}: {value}\n')
+
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            f.writelines(lines)
+
     @classmethod
     def load(cls, config_path: str = "config.yaml") -> "Config":
         """Загрузка конфигурации из YAML файла."""
@@ -89,6 +133,7 @@ class Config:
                 "syntax_theme": "monokai",
                 "code_border": "round",
                 "app_theme": "textual-dark",
+                "sidebar_width": 30,
             },
             "tags": {
                 "show_cloud": True,
